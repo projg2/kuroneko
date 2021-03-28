@@ -19,7 +19,7 @@ from pkgcore.ebuild.errors import MalformedAtom
 
 BUGZILLA_API_URL = 'https://bugs.gentoo.org/rest'
 PKG_SEPARATORS = re.compile(r':\s|[\s,;(){}[\]]')
-SEVERITY_RE = re.compile(r'[~AB][1-4]')
+SEVERITY_RE = re.compile(r'[~ABC][1-4]')
 
 
 class BugInfo(typing.NamedTuple):

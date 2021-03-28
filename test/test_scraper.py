@@ -87,6 +87,7 @@ def test_find_package_specs(spec, expected):
      ('B1 [glsa masked cve]', 'B1'),
      ('~4 [cleanup]', '~4'),
      ('A2 [glsa? cve]', 'A2'),
+     ('C1 [glsa? cleanup]', 'C1'),
      ('?? [glsa?]', '??'),
      ('', '??'),
      ('random stuff', '??'),
