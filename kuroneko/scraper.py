@@ -4,12 +4,18 @@
 
 """Gentoo Bugzilla scraping support."""
 
+import re
 import typing
 
+import bracex
 import requests
+
+from pkgcore.ebuild.atom import atom
+from pkgcore.ebuild.errors import MalformedAtom
 
 
 BUGZILLA_API_URL = 'https://bugs.gentoo.org/rest'
+PKG_SEPARATORS = re.compile(r':\s|[\s,;(){}[\]]')
 
 
 class BugInfo(typing.NamedTuple):
@@ -45,10 +51,27 @@ def find_security_bugs() -> typing.Iterable[BugInfo]:
         yield BugInfo(**bug)
 
 
+def find_package_specs(s: str) -> typing.Iterable[str]:
+    """Find potentially valid package specifications in given string."""
+    words = set()
+    # consider all possible expansions
+    for exp in bracex.iexpand(s):
+        words.update(PKG_SEPARATORS.split(exp))
+    for w in words:
+        # skip anything that couldn't be cat/pkg early
+        if '/' not in w:
+            continue
+        try:
+            atom(w)
+        except MalformedAtom:
+            continue
+        yield w
+
+
 def main() -> int:
     """CLI interface for kuroneko scraper."""
-    bugs = find_security_bugs()
-    print(list(bugs))
+    for bug in find_security_bugs():
+        print(list(find_package_specs(bug.summary)))
     return 0
 
 

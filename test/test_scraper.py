@@ -3,9 +3,12 @@
 
 """Tests for scraping support"""
 
+import pytest
 import responses
 
-from kuroneko.scraper import BugInfo, find_security_bugs
+from kuroneko.scraper import (
+    BugInfo, find_security_bugs, find_package_specs,
+    )
 
 
 @responses.activate
@@ -52,3 +55,22 @@ def test_bugzilla_scraping():
                   json={'bugs': bugs_json})
 
     assert list(find_security_bugs()) == expected
+
+
+@pytest.mark.parametrize(
+    'spec,expected',
+    [('dev-foo/bar: funny vuln', ['dev-foo/bar']),
+     ('<dev-foo/bar-12: funny', ['<dev-foo/bar-12']),
+     ('<dev-foo/bar-{12.2,14}: funny', ['<dev-foo/bar-12.2',
+                                        '<dev-foo/bar-14']),
+     ('dev-foo/{bar,baz} lalala', ['dev-foo/bar', 'dev-foo/baz']),
+     ('~dev-foo/bar-14[sqlite]', ['~dev-foo/bar-14']),
+     ('dev-foo/bar, dev-foo/baz, CVE-12345', ['dev-foo/bar',
+                                              'dev-foo/baz']),
+     ('<>dev-foo/baz: imma big junk', []),
+     ('dev-foo/bar:{1.3,1.4}', ['dev-foo/bar:1.3', 'dev-foo/bar:1.4']),
+     ('<dev-foo/bar-{1.3.2:1.3,1.4.7:1.4}', ['<dev-foo/bar-1.3.2:1.3',
+                                             '<dev-foo/bar-1.4.7:1.4']),
+     ])
+def test_find_package_specs(spec, expected):
+    assert sorted(find_package_specs(spec)) == expected
