@@ -4,7 +4,10 @@
 
 """Gentoo Bugzilla scraping support."""
 
+import argparse
+import json
 import re
+import sys
 import typing
 
 import bracex
@@ -70,8 +73,24 @@ def find_package_specs(s: str) -> typing.Iterable[str]:
 
 def main() -> int:
     """CLI interface for kuroneko scraper."""
+    argp = argparse.ArgumentParser()
+    argp.add_argument('-o', '--output', default='-',
+                      help='Output JSON file (default: - = stdout)')
+    args = argp.parse_args()
+
+    if args.output == '-':
+        output = sys.stdout
+    else:
+        output = open(args.output, 'w')
+
+    jdata = []
     for bug in find_security_bugs():
-        print(list(find_package_specs(bug.summary)))
+        jdata.append({
+            'bug': bug.id,
+            'packages': list(find_package_specs(bug.summary)),
+        })
+
+    json.dump(jdata, output)
     return 0
 
 
