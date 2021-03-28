@@ -7,7 +7,7 @@ import pytest
 import responses
 
 from kuroneko.scraper import (
-    BugInfo, find_security_bugs, find_package_specs,
+    BugInfo, find_security_bugs, find_package_specs, get_severity,
     )
 
 
@@ -74,3 +74,22 @@ def test_bugzilla_scraping():
      ])
 def test_find_package_specs(spec, expected):
     assert sorted(find_package_specs(spec)) == expected
+
+
+@pytest.mark.parametrize(
+    'wb,expected',
+    [('B3 [upstream cve]', 'B3'),
+     ('B4 [upstream]', 'B4'),
+     ('~3 [upstream cve]', '~3'),
+     ('B3 [ebuild]', 'B3'),
+     ('A4 [upstream/ebuild cve]', 'A4'),
+     ('A2 [stable blocked]', 'A2'),
+     ('B1 [glsa masked cve]', 'B1'),
+     ('~4 [cleanup]', '~4'),
+     ('A2 [glsa? cve]', 'A2'),
+     ('?? [glsa?]', '??'),
+     ('', '??'),
+     ('random stuff', '??'),
+     ])
+def test_get_severity(wb, expected):
+    assert get_severity(wb) == expected

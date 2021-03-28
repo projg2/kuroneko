@@ -19,6 +19,7 @@ from pkgcore.ebuild.errors import MalformedAtom
 
 BUGZILLA_API_URL = 'https://bugs.gentoo.org/rest'
 PKG_SEPARATORS = re.compile(r':\s|[\s,;(){}[\]]')
+SEVERITY_RE = re.compile(r'[~AB][1-4]')
 
 
 class BugInfo(typing.NamedTuple):
@@ -75,6 +76,14 @@ def find_package_specs(s: str) -> typing.Iterable[str]:
         yield w
 
 
+def get_severity(whiteboard: str) -> str:
+    """Parse severity from bug's whiteboard."""
+    maybe_sev = whiteboard.split(' ')[0]
+    if SEVERITY_RE.match(maybe_sev):
+        return maybe_sev
+    return '??'
+
+
 def main() -> int:
     """CLI interface for kuroneko scraper."""
     argp = argparse.ArgumentParser()
@@ -94,6 +103,8 @@ def main() -> int:
         jdata.append({
             'bug': bug.id,
             'packages': list(find_package_specs(bug.summary)),
+            'summary': bug.summary,
+            'severity': get_severity(bug.whiteboard),
         })
 
     json.dump(jdata, output)
