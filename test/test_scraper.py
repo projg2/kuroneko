@@ -20,6 +20,7 @@ def test_bugzilla_scraping():
             summary='media-tv/kodi: Password disclosure vulnerability '
                     '(CVE-2014-3800)',
             whiteboard='B3 [upstream cve]',
+            creation_time='2016-03-01T17:31:35Z',
             ),
         BugInfo(
             alias=[],
@@ -27,6 +28,7 @@ def test_bugzilla_scraping():
             summary='app-emulation/wine: Insecure use of temp files '
                     'with predictable names',
             whiteboard='B4 [upstream]',
+            creation_time='2016-03-01T17:31:35Z',
             ),
         BugInfo(
             alias=['CVE-2013-4392'],
@@ -35,6 +37,7 @@ def test_bugzilla_scraping():
                     'updating file permissions and SELinux security '
                     'contexts',
             whiteboard='~3 [upstream cve]',
+            creation_time='2016-11-23T20:58:05Z',
             ),
         BugInfo(
             alias=[],
@@ -42,6 +45,7 @@ def test_bugzilla_scraping():
             summary='app-accessibility/eflite: root privilege '
                     'escalation',
             whiteboard='B1 [ebuild]',
+            creation_time='2016-12-14T02:41:52Z',
             ),
     ]
     bugs_json = [x._asdict() for x in expected]
@@ -51,6 +55,7 @@ def test_bugzilla_scraping():
                   'component=Vulnerabilities&include_fields=id&'
                   'include_fields=summary&include_fields=alias&'
                   'include_fields=whiteboard&'
+                  'include_fields=creation_time&'
                   'resolution=---',
                   json={'bugs': bugs_json})
 

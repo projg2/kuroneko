@@ -29,6 +29,7 @@ class BugInfo(typing.NamedTuple):
     summary: str
     alias: typing.List[str]
     whiteboard: str
+    creation_time: str
 
 
 def find_security_bugs(limit: typing.Optional[int] = None,
@@ -105,6 +106,7 @@ def main() -> int:
             'packages': list(find_package_specs(bug.summary)),
             'summary': bug.summary,
             'severity': get_severity(bug.whiteboard),
+            'created': bug.creation_time,
         })
 
     json.dump(jdata, output)
