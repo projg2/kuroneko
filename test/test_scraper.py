@@ -51,7 +51,7 @@ def test_bugzilla_scraping():
                   'component=Vulnerabilities&include_fields=id&'
                   'include_fields=summary&include_fields=alias&'
                   'include_fields=whiteboard&'
-                  'resolution=---&limit=10',
+                  'resolution=---',
                   json={'bugs': bugs_json})
 
     assert list(find_security_bugs()) == expected

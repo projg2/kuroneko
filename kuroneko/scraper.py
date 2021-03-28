@@ -30,12 +30,15 @@ class BugInfo(typing.NamedTuple):
     whiteboard: str
 
 
-def find_security_bugs() -> typing.Iterable[BugInfo]:
+def find_security_bugs(limit: typing.Optional[int] = None,
+                       ) -> typing.Iterable[BugInfo]:
     """
     Perform a search for security bugs.
 
     Find all relevant Security bugs on a Bugzilla instance, and return
     an iterable of BugInfo instances.
+
+    If limit is specified, up to LIMIT bugs are returned.
     """
     endpoint = BUGZILLA_API_URL + '/bug'
     params = {
@@ -43,10 +46,11 @@ def find_security_bugs() -> typing.Iterable[BugInfo]:
         'product': ['Gentoo Security'],
         'component': ['Vulnerabilities'],
         'include_fields': BugInfo._fields,
-        # TODO: testing speedup hack
         'resolution': '---',
-        'limit': '10',
+        'limit': limit,
     }
+    if limit is None:
+        del params['limit']
     resp = requests.get(endpoint, timeout=60, params=params)
     if not resp:
         raise RuntimeError(f"Bugzilla request failed: {resp.content!r}")
@@ -74,6 +78,8 @@ def find_package_specs(s: str) -> typing.Iterable[str]:
 def main() -> int:
     """CLI interface for kuroneko scraper."""
     argp = argparse.ArgumentParser()
+    argp.add_argument('-l', '--limit', type=int,
+                      help='Limit the results to LIMIT bugs')
     argp.add_argument('-o', '--output', default='-',
                       help='Output JSON file (default: - = stdout)')
     args = argp.parse_args()
@@ -84,7 +90,7 @@ def main() -> int:
         output = open(args.output, 'w')
 
     jdata = []
-    for bug in find_security_bugs():
+    for bug in find_security_bugs(limit=args.limit):
         jdata.append({
             'bug': bug.id,
             'packages': list(find_package_specs(bug.summary)),
