@@ -5,7 +5,6 @@
 """Gentoo Bugzilla scraping support."""
 
 import argparse
-import json
 import re
 import sys
 import typing
@@ -15,6 +14,8 @@ import requests
 
 from pkgcore.ebuild.atom import atom
 from pkgcore.ebuild.errors import MalformedAtom
+
+from kuroneko.database import Database
 
 
 BUGZILLA_API_URL = 'https://bugs.gentoo.org/rest'
@@ -99,17 +100,15 @@ def main() -> int:
     else:
         output = open(args.output, 'w')
 
-    jdata = []
+    db = Database()
     for bug in find_security_bugs(limit=args.limit):
-        jdata.append({
-            'bug': bug.id,
-            'packages': list(find_package_specs(bug.summary)),
-            'summary': bug.summary,
-            'severity': get_severity(bug.whiteboard),
-            'created': bug.creation_time,
-        })
+        db.add_bug(bug=bug.id,
+                   packages=list(find_package_specs(bug.summary)),
+                   summary=bug.summary,
+                   severity=get_severity(bug.whiteboard),
+                   created=bug.creation_time)
+    db.save(output)
 
-    json.dump(jdata, output)
     return 0
 
 
