@@ -49,5 +49,5 @@ class Database:
             packages=packages,
             summary=summary,
             severity=severity,
-            created=created,
+            created=created.split('T', 1)[0],
             )
