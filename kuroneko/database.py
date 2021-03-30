@@ -29,12 +29,15 @@ class Database:
     def load(self, fileobj: typing.IO) -> None:
         """Load database from open JSON file."""
         self.bugs = {}
-        for bug in json.load(fileobj):
+        data = json.load(fileobj)
+        for bug in data['bugs']:
             self.bugs[bug['bug']] = Bug(**bug)
 
     def save(self, fileobj: typing.IO) -> None:
         """Save database into open JSON file."""
-        json.dump(list(x._asdict() for x in self.bugs.values()), fileobj)
+        json.dump({
+            'bugs': list(x._asdict() for x in self.bugs.values()),
+            }, fileobj)
 
     def add_bug(self,
                 bug: int,
