@@ -124,7 +124,7 @@ def print_bug(bug: Bug, bug_pkg: str, inst_pkg: str) -> None:
     pr.print()
 
 
-@functools.cache
+@functools.lru_cache(maxsize=None)
 def cached_atom(s: str) -> atom:
     """Convert string to atom, with caching."""
     return atom(s)
