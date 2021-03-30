@@ -6,8 +6,11 @@
 import pytest
 import responses
 
+from pkgcore.ebuild.atom import atom
+
 from kuroneko.scraper import (
     BugInfo, find_security_bugs, find_package_specs, get_severity,
+    split_version_ranges,
     )
 
 
@@ -78,7 +81,7 @@ def test_bugzilla_scraping():
                                              '<dev-foo/bar-1.4.7:1.4']),
      ])
 def test_find_package_specs(spec, expected):
-    assert sorted(find_package_specs(spec)) == expected
+    assert sorted(str(x) for x in find_package_specs(spec)) == expected
 
 
 @pytest.mark.parametrize(
@@ -99,3 +102,23 @@ def test_find_package_specs(spec, expected):
      ])
 def test_get_severity(wb, expected):
     assert get_severity(wb) == expected
+
+
+@pytest.mark.parametrize(
+    'pkgs,expected',
+    [(['<dev-foo/bar-7'], [('<dev-foo/bar-7',)]),
+     (['<dev-foo/bar-3.4', '<dev-foo/bar-7.2'],
+      [('<dev-foo/bar-3.4',), ('>=dev-foo/bar-4', '<dev-foo/bar-7.2')]),
+     (['<dev-foo/bar-3.6.11_p2',
+       '<dev-foo/bar-3.7.7_p1',
+       '<dev-foo/bar-3.8.4',
+       '<dev-foo/bar-3.9.1'],
+      [('<dev-foo/bar-3.6.11_p2',),
+       ('>=dev-foo/bar-3.7', '<dev-foo/bar-3.7.7_p1'),
+       ('>=dev-foo/bar-3.8', '<dev-foo/bar-3.8.4'),
+       ('>=dev-foo/bar-3.9', '<dev-foo/bar-3.9.1'),
+       ]),
+     (['dev-foo/bar', 'dev-foo/baz'], [('dev-foo/bar',), ('dev-foo/baz',)]),
+     ])
+def test_split_version_ranges(pkgs, expected):
+    assert list(split_version_ranges(atom(x) for x in pkgs)) == expected

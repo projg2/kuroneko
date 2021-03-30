@@ -11,7 +11,7 @@ class Bug(typing.NamedTuple):
     """Tuple representing bug in the database."""
 
     bug: int
-    packages: typing.List[str]
+    packages: typing.List[typing.Tuple[str, ...]]
     summary: str
     severity: str
     created: str
@@ -38,7 +38,7 @@ class Database:
 
     def add_bug(self,
                 bug: int,
-                packages: typing.List[str],
+                packages: typing.List[typing.Tuple[str, ...]],
                 summary: str,
                 severity: str,
                 created: str,

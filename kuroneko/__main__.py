@@ -15,7 +15,7 @@ import colorama
 from pkgcore.config import load_config
 from pkgcore.ebuild.atom import atom
 from pkgcore.package.metadata import package as pkgcore_package
-from pkgcore.restrictions.boolean import OrRestriction
+from pkgcore.restrictions.boolean import OrRestriction, AndRestriction
 from pkgcore.restrictions.restriction import base as base_restriction
 
 from kuroneko.database import Database, Bug
@@ -133,9 +133,9 @@ def cached_atom(s: str) -> atom:
 def packages_to_restriction(db: Database
                             ) -> base_restriction:
     """Get a pkgcore restriction for given package list."""
-    return OrRestriction(*frozenset(cached_atom(pkg)
-                                    for bug in db.bugs.values()
-                                    for pkg in bug.packages))
+    return OrRestriction(
+        *(AndRestriction(*(cached_atom(pkg) for pkg in pkgs))
+          for bug in db.bugs.values() for pkgs in bug.packages))
 
 
 def find_applicable_bugs(package: pkgcore_package,
@@ -144,8 +144,11 @@ def find_applicable_bugs(package: pkgcore_package,
     """Find all bugs applicable to specified package."""
     for bug in db.bugs.values():
         for bug_pkg in bug.packages:
-            if cached_atom(bug_pkg).match(package):
-                yield (bug_pkg, bug)
+            for at in bug_pkg:
+                if not cached_atom(at).match(package):
+                    break
+            else:
+                yield (' '.join(bug_pkg), bug)
                 # report only first match per bug
                 break
 

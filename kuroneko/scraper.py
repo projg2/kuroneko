@@ -5,6 +5,7 @@
 """Gentoo Bugzilla scraping support."""
 
 import argparse
+import collections
 import re
 import sys
 import typing
@@ -21,6 +22,7 @@ from kuroneko.database import Database
 BUGZILLA_API_URL = 'https://bugs.gentoo.org/rest'
 PKG_SEPARATORS = re.compile(r':\s|[\s,;(){}[\]]')
 SEVERITY_RE = re.compile(r'[~ABC][1-4]')
+VER_SPLIT_RE = re.compile(r'([^\d]+)')
 
 
 class BugInfo(typing.NamedTuple):
@@ -61,7 +63,7 @@ def find_security_bugs(limit: typing.Optional[int] = None,
         yield BugInfo(**bug)
 
 
-def find_package_specs(s: str) -> typing.Iterable[str]:
+def find_package_specs(s: str) -> typing.Iterable[atom]:
     """Find potentially valid package specifications in given string."""
     words = set()
     # consider all possible expansions
@@ -72,10 +74,56 @@ def find_package_specs(s: str) -> typing.Iterable[str]:
         if '/' not in w:
             continue
         try:
-            atom(w)
+            yield atom(w)
         except MalformedAtom:
             continue
-        yield w
+
+
+def split_version_ranges(packages: typing.Iterable[atom]
+                         ) -> typing.Iterable[typing.Tuple[str, ...]]:
+    """Split multiple specs for same package into version ranges."""
+    # first, group packages by key
+    package_groups = collections.defaultdict(list)
+    for pkg in packages:
+        package_groups[pkg.key].append(pkg)
+    for group in package_groups.values():
+        # split only packages consisting purely of </<= operators
+        if len(group) > 1 and all(x.op in ('<', '<=') for x in group):
+            it = iter(sorted(group))
+            p1 = next(it)
+            p2 = next(it)
+
+            # return the lowest spec first
+            yield (str(p1),)
+
+            while True:
+                assert p1.key == p2.key
+                assert p1.fullver != p2.fullver
+                v1 = VER_SPLIT_RE.split(p1.fullver)
+                v2 = VER_SPLIT_RE.split(p2.fullver)
+
+                # find the common part
+                common_ver: typing.List[str] = []
+                for i in range(0, min(len(v1), len(v2))):
+                    if v1[i] == v2[i]:
+                        common_ver += v1[i]
+                    else:
+                        break
+
+                # increase the first component after the common part
+                next1 = int(v1[i])
+                next2 = int(v2[i])
+                assert next1 < next2
+                lower = ''.join(common_ver + [str(next1 + 1)])
+                yield (f'>={p2.key}-{lower}', str(p2))
+                p1 = p2
+                try:
+                    p2 = next(it)
+                except StopIteration:
+                    break
+        else:
+            for x in group:
+                yield (str(x),)
 
 
 def get_severity(whiteboard: str) -> str:
@@ -103,7 +151,8 @@ def main() -> int:
     db = Database()
     for bug in find_security_bugs(limit=args.limit):
         db.add_bug(bug=bug.id,
-                   packages=list(find_package_specs(bug.summary)),
+                   packages=list(split_version_ranges(
+                       find_package_specs(bug.summary))),
                    summary=bug.summary,
                    severity=get_severity(bug.whiteboard),
                    created=bug.creation_time)
