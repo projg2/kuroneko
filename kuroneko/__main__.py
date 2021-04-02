@@ -121,6 +121,8 @@ def print_bug(bug: Bug, bug_pkg: str, inst_pkg: str) -> None:
     pr.add('  created: [', get_age_color(bug.created, bug.severity),
            bug.created, '] ')
     pr.add('', colorama.Fore.GREEN, f'{BUGZILLA_URL_PREFIX}{bug.bug}', '')
+    if bug.resolved:
+        pr.add(' ', colorama.Fore.CYAN, 'bug resolved')
     pr.print()
 
 

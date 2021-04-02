@@ -17,6 +17,7 @@ class Bug(typing.NamedTuple):
     summary: str
     severity: str
     created: str
+    resolved: bool
 
 
 class DatabaseError(RuntimeError):
@@ -69,6 +70,7 @@ class Database:
                 summary: str,
                 severity: str,
                 created: str,
+                resolved: bool,
                 ) -> None:
         """Add a new bug to the database."""
         self.bugs[bug] = Bug(
@@ -77,4 +79,5 @@ class Database:
             summary=summary,
             severity=severity,
             created=created.split('T', 1)[0],
+            resolved=resolved,
             )

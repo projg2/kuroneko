@@ -19,7 +19,8 @@ JSON_DATA = '''
         "packages": ["dev-foo/bar"],
         "summary": "test bug",
         "severity": "C4",
-        "created": "2021-01-01"}}
+        "created": "2021-01-01",
+        "resolved": false}}
   ]}}'''
 
 EXPECTED_BUGS = {
@@ -27,7 +28,8 @@ EXPECTED_BUGS = {
                 packages=['dev-foo/bar'],
                 summary='test bug',
                 severity='C4',
-                created='2021-01-01'),
+                created='2021-01-01',
+                resolved=False),
 }
 
 

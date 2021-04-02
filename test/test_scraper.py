@@ -24,6 +24,7 @@ def test_bugzilla_scraping():
                     '(CVE-2014-3800)',
             whiteboard='B3 [upstream cve]',
             creation_time='2016-03-01T17:31:35Z',
+            resolution='---',
             ),
         BugInfo(
             alias=[],
@@ -32,6 +33,7 @@ def test_bugzilla_scraping():
                     'with predictable names',
             whiteboard='B4 [upstream]',
             creation_time='2016-03-01T17:31:35Z',
+            resolution='---',
             ),
         BugInfo(
             alias=['CVE-2013-4392'],
@@ -41,6 +43,7 @@ def test_bugzilla_scraping():
                     'contexts',
             whiteboard='~3 [upstream cve]',
             creation_time='2016-11-23T20:58:05Z',
+            resolution='---',
             ),
         BugInfo(
             alias=[],
@@ -49,6 +52,7 @@ def test_bugzilla_scraping():
                     'escalation',
             whiteboard='B1 [ebuild]',
             creation_time='2016-12-14T02:41:52Z',
+            resolution='---',
             ),
     ]
     bugs_json = [x._asdict() for x in expected]
@@ -58,8 +62,7 @@ def test_bugzilla_scraping():
                   'component=Vulnerabilities&include_fields=id&'
                   'include_fields=summary&include_fields=alias&'
                   'include_fields=whiteboard&'
-                  'include_fields=creation_time&'
-                  'resolution=---',
+                  'include_fields=creation_time&include_fields=resolution',
                   json={'bugs': bugs_json})
 
     assert list(find_security_bugs()) == expected

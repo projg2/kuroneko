@@ -6,6 +6,7 @@
 
 import argparse
 import collections
+import itertools
 import re
 import sys
 import typing
@@ -33,6 +34,7 @@ class BugInfo(typing.NamedTuple):
     alias: typing.List[str]
     whiteboard: str
     creation_time: str
+    resolution: str
 
 
 def find_security_bugs(limit: typing.Optional[int] = None,
@@ -51,7 +53,6 @@ def find_security_bugs(limit: typing.Optional[int] = None,
         'product': ['Gentoo Security'],
         'component': ['Vulnerabilities'],
         'include_fields': BugInfo._fields,
-        'resolution': '---',
         'limit': limit,
     }
     if limit is None:
@@ -155,12 +156,22 @@ def main() -> int:
 
     db = Database()
     for bug in find_security_bugs(limit=args.limit):
+        packages = list(split_version_ranges(
+            find_package_specs(bug.summary)))
+        # skip bugs with no packages
+        if not packages:
+            continue
+        # skip resolved bugs without specific version ranges
+        resolved = bug.resolution != ''
+        if resolved and not all(p[0] in '<>~=' for p
+                                in itertools.chain.from_iterable(packages)):
+            continue
         db.add_bug(bug=bug.id,
-                   packages=list(split_version_ranges(
-                       find_package_specs(bug.summary))),
+                   packages=packages,
                    summary=bug.summary,
                    severity=get_severity(bug.whiteboard),
-                   created=bug.creation_time)
+                   created=bug.creation_time,
+                   resolved=resolved)
     db.save(output)
 
     return 0
