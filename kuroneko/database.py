@@ -78,6 +78,6 @@ class Database:
             packages=packages,
             summary=summary,
             severity=severity,
-            created=created.split('T', 1)[0],
+            created=created,
             resolved=resolved,
             )

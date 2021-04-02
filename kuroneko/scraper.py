@@ -170,7 +170,7 @@ def main() -> int:
                    packages=packages,
                    summary=bug.summary,
                    severity=get_severity(bug.whiteboard),
-                   created=bug.creation_time,
+                   created=bug.creation_time.split('T', 1)[0],
                    resolved=resolved)
     db.save(output)
 
