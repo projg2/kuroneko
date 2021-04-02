@@ -90,13 +90,18 @@ def split_version_ranges(packages: typing.Iterable[atom]
         # split only packages consisting purely of </<= operators
         if len(group) > 1 and all(x.op in ('<', '<=') for x in group):
             it = iter(sorted(group))
-            p1 = next(it)
             p2 = next(it)
 
             # return the lowest spec first
-            yield (str(p1),)
+            yield (str(p2),)
 
             while True:
+                p1 = p2
+                try:
+                    p2 = next(it)
+                except StopIteration:
+                    break
+
                 assert p1.key == p2.key
                 assert p1.fullver != p2.fullver
                 v1 = VER_SPLIT_RE.split(p1.fullver)
@@ -105,22 +110,22 @@ def split_version_ranges(packages: typing.Iterable[atom]
                 # find the common part
                 common_ver: typing.List[str] = []
                 for i in range(0, min(len(v1), len(v2))):
-                    if v1[i] == v2[i]:
-                        common_ver += v1[i]
-                    else:
+                    if v1[i] != v2[i]:
                         break
+                    common_ver += v1[i]
+                else:
+                    # all common components are equal
+                    # TODO: support this correctly
+                    yield (str(p2),)
+                    continue
 
                 # increase the first component after the common part
                 next1 = int(v1[i])
                 next2 = int(v2[i])
-                assert next1 < next2
+                assert next1 < next2, (f'expected {p1} < {p2}, '
+                                       f'v1 = {v1}, v2 = {v2}')
                 lower = ''.join(common_ver + [str(next1 + 1)])
                 yield (f'>={p2.key}-{lower}', str(p2))
-                p1 = p2
-                try:
-                    p2 = next(it)
-                except StopIteration:
-                    break
         else:
             for x in group:
                 yield (str(x),)

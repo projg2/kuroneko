@@ -119,6 +119,8 @@ def test_get_severity(wb, expected):
        ('>=dev-foo/bar-3.9', '<dev-foo/bar-3.9.1'),
        ]),
      (['dev-foo/bar', 'dev-foo/baz'], [('dev-foo/bar',), ('dev-foo/baz',)]),
+     (['<dev-foo/bar-1.2', '<dev-foo/bar-1.2-r100'],
+      [('<dev-foo/bar-1.2',), ('<dev-foo/bar-1.2-r100',)]),
      ])
 def test_split_version_ranges(pkgs, expected):
     assert list(split_version_ranges(atom(x) for x in pkgs)) == expected
