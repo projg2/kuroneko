@@ -147,15 +147,27 @@ def main() -> int:
                       help='Limit the results to LIMIT bugs')
     argp.add_argument('-o', '--output', default='-',
                       help='Output JSON file (default: - = stdout)')
+    argp.add_argument('-X', '--exclude-file', type=argparse.FileType(),
+                      help='File to read list of excluded bugs from')
     args = argp.parse_args()
 
     if args.output == '-':
         output = sys.stdout
     else:
         output = open(args.output, 'w')
+    exclude: typing.List[int] = []
+    if args.exclude_file is not None:
+        for line in args.exclude_file:
+            line = line.strip()
+            if line.startswith('#'):
+                continue
+            exclude.extend(int(x) for x in line.split())
+    exclude_set = frozenset(exclude)
 
     db = Database()
     for bug in find_security_bugs(limit=args.limit):
+        if bug.id in exclude_set:
+            continue
         packages = list(split_version_ranges(
             find_package_specs(bug.summary)))
         # skip bugs with no packages
