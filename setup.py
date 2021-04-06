@@ -18,4 +18,21 @@ setup(
     url='http://github.com/mgorny/kuroneko',
 
     packages=['kuroneko'],
+
+    install_requires=[
+        'colorama',
+        'pkgcore',
+    ],
+    extras_require={
+        'scraper': [
+            'bracex',
+            'requests',
+        ],
+        'test': [
+            'bracex',
+            'pytest',
+            'requests',
+            'responses',
+        ],
+    },
 )
