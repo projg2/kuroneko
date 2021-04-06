@@ -8,7 +8,6 @@ import unittest.mock
 
 import pytest
 
-from kuroneko import __version__
 from kuroneko.database import Database, Bug, DatabaseError
 
 
@@ -16,7 +15,8 @@ JSON_DATA = '''
 {{"kuroneko-version": {version},
   "bugs": [
       {{"bug": 123456,
-        "packages": ["dev-foo/bar"],
+        "packages": [["dev-foo/bar"],
+                     [">=dev-foo/foo-1", "<dev-foo/foo-1.7"]],
         "summary": "test bug",
         "severity": "C4",
         "created": "2021-01-01",
@@ -25,7 +25,8 @@ JSON_DATA = '''
 
 EXPECTED_BUGS = {
     123456: Bug(bug=123456,
-                packages=['dev-foo/bar'],
+                packages=[['dev-foo/bar'],
+                          ['>=dev-foo/foo-1', '<dev-foo/foo-1.7']],
                 summary='test bug',
                 severity='C4',
                 created='2021-01-01',

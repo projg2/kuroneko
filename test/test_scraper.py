@@ -109,21 +109,21 @@ def test_get_severity(wb, expected):
 
 @pytest.mark.parametrize(
     'pkgs,expected',
-    [(['<dev-foo/bar-7'], [('<dev-foo/bar-7',)]),
+    [(['<dev-foo/bar-7'], [['<dev-foo/bar-7']]),
      (['<dev-foo/bar-3.4', '<dev-foo/bar-7.2'],
-      [('<dev-foo/bar-3.4',), ('>=dev-foo/bar-4', '<dev-foo/bar-7.2')]),
+      [['<dev-foo/bar-3.4'], ['>=dev-foo/bar-4', '<dev-foo/bar-7.2']]),
      (['<dev-foo/bar-3.6.11_p2',
        '<dev-foo/bar-3.7.7_p1',
        '<dev-foo/bar-3.8.4',
        '<dev-foo/bar-3.9.1'],
-      [('<dev-foo/bar-3.6.11_p2',),
-       ('>=dev-foo/bar-3.7', '<dev-foo/bar-3.7.7_p1'),
-       ('>=dev-foo/bar-3.8', '<dev-foo/bar-3.8.4'),
-       ('>=dev-foo/bar-3.9', '<dev-foo/bar-3.9.1'),
+      [['<dev-foo/bar-3.6.11_p2'],
+       ['>=dev-foo/bar-3.7', '<dev-foo/bar-3.7.7_p1'],
+       ['>=dev-foo/bar-3.8', '<dev-foo/bar-3.8.4'],
+       ['>=dev-foo/bar-3.9', '<dev-foo/bar-3.9.1'],
        ]),
-     (['dev-foo/bar', 'dev-foo/baz'], [('dev-foo/bar',), ('dev-foo/baz',)]),
+     (['dev-foo/bar', 'dev-foo/baz'], [['dev-foo/bar'], ['dev-foo/baz']]),
      (['<dev-foo/bar-1.2', '<dev-foo/bar-1.2-r100'],
-      [('<dev-foo/bar-1.2',), ('<dev-foo/bar-1.2-r100',)]),
+      [['<dev-foo/bar-1.2'], ['<dev-foo/bar-1.2-r100']]),
      ])
 def test_split_version_ranges(pkgs, expected):
     assert list(split_version_ranges(atom(x) for x in pkgs)) == expected

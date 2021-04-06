@@ -81,7 +81,7 @@ def find_package_specs(s: str) -> typing.Iterable[atom]:
 
 
 def split_version_ranges(packages: typing.Iterable[atom]
-                         ) -> typing.Iterable[typing.Tuple[str, ...]]:
+                         ) -> typing.Iterable[typing.List[str]]:
     """Split multiple specs for same package into version ranges."""
     # first, group packages by key
     package_groups = collections.defaultdict(list)
@@ -94,7 +94,7 @@ def split_version_ranges(packages: typing.Iterable[atom]
             p2 = next(it)
 
             # return the lowest spec first
-            yield (str(p2),)
+            yield [str(p2)]
 
             while True:
                 p1 = p2
@@ -117,7 +117,7 @@ def split_version_ranges(packages: typing.Iterable[atom]
                 else:
                     # all common components are equal
                     # TODO: support this correctly
-                    yield (str(p2),)
+                    yield [str(p2)]
                     continue
 
                 # increase the first component after the common part
@@ -126,10 +126,10 @@ def split_version_ranges(packages: typing.Iterable[atom]
                 assert next1 < next2, (f'expected {p1} < {p2}, '
                                        f'v1 = {v1}, v2 = {v2}')
                 lower = ''.join(common_ver + [str(next1 + 1)])
-                yield (f'>={p2.key}-{lower}', str(p2))
+                yield [f'>={p2.key}-{lower}', str(p2)]
         else:
             for x in group:
-                yield (str(x),)
+                yield [str(x)]
 
 
 def get_severity(whiteboard: str) -> str:
