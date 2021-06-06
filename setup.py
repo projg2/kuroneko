@@ -22,16 +22,15 @@ setup(
     install_requires=[
         'colorama',
         'pkgcore',
+        'requests',
     ],
     extras_require={
         'scraper': [
             'bracex',
-            'requests',
         ],
         'test': [
             'bracex',
             'pytest',
-            'requests',
             'responses',
         ],
     },

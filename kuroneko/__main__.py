@@ -8,6 +8,7 @@ import argparse
 import datetime
 import functools
 import os
+import os.path
 import typing
 
 import colorama
@@ -18,6 +19,7 @@ from pkgcore.package.metadata import package as pkgcore_package
 from pkgcore.restrictions.boolean import OrRestriction, AndRestriction
 from pkgcore.restrictions.restriction import base as base_restriction
 
+from kuroneko.cache import cached_get
 from kuroneko.database import Database, Bug
 
 
@@ -27,6 +29,10 @@ except OSError:
     COLUMNS = None
 
 BUGZILLA_URL_PREFIX = 'https://bugs.gentoo.org/'
+DEFAULT_DB_URL = 'https://qa-reports.gentoo.org/output/kuroneko.json'
+XDG_CACHE_HOME = os.environ.get('XDG_CACHE_HOME',
+                                os.path.expanduser('~/.cache'))
+DEFAULT_CACHE_PATH = os.path.join(XDG_CACHE_HOME, 'kuroneko.json')
 TODAY = datetime.date.today()
 
 
@@ -159,13 +165,27 @@ def main() -> int:
     """CLI interface for kuroneko scraper."""
     colorama.init()
     argp = argparse.ArgumentParser()
-    argp.add_argument('-d', '--database', type=argparse.FileType('r'),
-                      required=True,
-                      help='Path to the JSON database with bugs')
+    db_source = argp.add_mutually_exclusive_group()
+    db_source.add_argument('-d', '--database', type=argparse.FileType('r'),
+                           help='Use bug database from specified json file '
+                                '(if not specified, database will be fetched '
+                                'from --database-url)')
+    db_source.add_argument('--database-url',
+                           default=DEFAULT_DB_URL,
+                           help=f'Fetch bug database from specified URL '
+                                f'(default: {DEFAULT_DB_URL})')
+    argp.add_argument('--cache-file',
+                      help=f'File used to store a cached copy of bug database '
+                           f'(default: {DEFAULT_CACHE_PATH})')
     args = argp.parse_args()
 
     # load the database
     db = Database()
+    if args.database is None:
+        if args.cache_file is None:
+            os.makedirs(XDG_CACHE_HOME, exist_ok=True)
+            args.cache_file = DEFAULT_CACHE_PATH
+        args.database = cached_get(args.database_url, args.cache_file)
     db.load(args.database)
     args.database.close()
 
