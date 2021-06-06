@@ -48,20 +48,32 @@ def find_security_bugs(limit: typing.Optional[int] = None,
     If limit is specified, up to LIMIT bugs are returned.
     """
     endpoint = BUGZILLA_API_URL + '/bug'
-    params = {
-        # TODO: other components?
-        'product': ['Gentoo Security'],
-        'component': ['Vulnerabilities'],
-        'include_fields': BugInfo._fields,
-        'limit': limit,
-    }
-    if limit is None:
-        del params['limit']
-    resp = requests.get(endpoint, timeout=60, params=params)
-    if not resp:
-        raise RuntimeError(f"Bugzilla request failed: {resp.content!r}")
-    for bug in resp.json()['bugs']:
-        yield BugInfo(**bug)
+    offset = 0
+    while True:
+        params = {
+            # TODO: other components?
+            'product': ['Gentoo Security'],
+            'component': ['Vulnerabilities'],
+            'include_fields': BugInfo._fields,
+            'limit': limit,
+            'offset': offset,
+        }
+        if limit is None:
+            params['limit'] = 10000
+        resp = requests.get(endpoint, timeout=60, params=params)
+        if not resp:
+            raise RuntimeError(f"Bugzilla request failed: {resp.content!r}")
+        j = resp.json()
+        for bug in j['bugs']:
+            yield BugInfo(**bug)
+        count = len(j['bugs'])
+        offset += count
+        # stop if we reached the user provided limit...
+        if limit is not None and offset >= limit:
+            break
+        # ...or if the last search returned no results
+        if count == 0:
+            break
 
 
 def find_package_specs(s: str) -> typing.Iterable[atom]:
@@ -147,6 +159,8 @@ def main() -> int:
                       help='Limit the results to LIMIT bugs')
     argp.add_argument('-o', '--output', default='-',
                       help='Output JSON file (default: - = stdout)')
+    argp.add_argument('-q', '--quiet', action='store_true',
+                      help='Disable status output')
     argp.add_argument('-X', '--exclude-file', type=argparse.FileType(),
                       help='File to read list of excluded bugs from')
     args = argp.parse_args()
@@ -165,7 +179,7 @@ def main() -> int:
     exclude_set = frozenset(exclude)
 
     db = Database()
-    for bug in find_security_bugs(limit=args.limit):
+    for i, bug in enumerate(find_security_bugs(limit=args.limit)):
         if bug.id in exclude_set:
             continue
         packages = list(split_version_ranges(
@@ -184,6 +198,8 @@ def main() -> int:
                    severity=get_severity(bug.whiteboard),
                    created=bug.creation_time.split('T', 1)[0],
                    resolved=resolved)
+    if not args.quiet:
+        print(f'Found {i+1} bugs', file=sys.stderr)
     db.save(output)
 
     return 0

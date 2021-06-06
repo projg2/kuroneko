@@ -62,8 +62,17 @@ def test_bugzilla_scraping():
                   'component=Vulnerabilities&include_fields=id&'
                   'include_fields=summary&include_fields=alias&'
                   'include_fields=whiteboard&'
-                  'include_fields=creation_time&include_fields=resolution',
+                  'include_fields=creation_time&include_fields=resolution&'
+                  'limit=10000&offset=0',
                   json={'bugs': bugs_json})
+    responses.add(responses.GET,
+                  'https://bugs.gentoo.org/rest/bug?product=Gentoo+Security&'
+                  'component=Vulnerabilities&include_fields=id&'
+                  'include_fields=summary&include_fields=alias&'
+                  'include_fields=whiteboard&'
+                  'include_fields=creation_time&include_fields=resolution&'
+                  'limit=10000&offset=4',
+                  json={'bugs': []})
 
     assert list(find_security_bugs()) == expected
 
