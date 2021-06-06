@@ -7,8 +7,10 @@
 import argparse
 import datetime
 import functools
+import io
 import os
 import os.path
+import sys
 import typing
 
 import colorama
@@ -177,15 +179,29 @@ def main() -> int:
     argp.add_argument('--cache-file',
                       help=f'File used to store a cached copy of bug database '
                            f'(default: {DEFAULT_CACHE_PATH})')
+    argp.add_argument('-q', '--quiet', action='store_true',
+                      help='Disable progress messages')
     args = argp.parse_args()
 
     # load the database
     db = Database()
-    if args.database is None:
+    if args.database is not None:
+        if not args.quiet:
+            print(f'Using local database {args.database.name}',
+                  file=sys.stderr)
+    else:
+        if not args.quiet:
+            print(f'Using remote database {args.database_url}',
+                  file=sys.stderr)
         if args.cache_file is None:
             os.makedirs(XDG_CACHE_HOME, exist_ok=True)
             args.cache_file = DEFAULT_CACHE_PATH
         args.database = cached_get(args.database_url, args.cache_file)
+        if not args.quiet:
+            if isinstance(args.database, io.BytesIO):
+                print('Database update fetched', file=sys.stderr)
+            else:
+                print('Local cache is up-to-date', file=sys.stderr)
     db.load(args.database)
     args.database.close()
 
@@ -196,9 +212,13 @@ def main() -> int:
 
     # do a quick search for vulnerable packages
     restrict = packages_to_restriction(db)
+    if not args.quiet:
+        print('Searching for vulnerable packages', file=sys.stderr)
     vulnerable = vdb.match(restrict)
 
     # match vulnerable packages to bugs
+    if not args.quiet:
+        print(file=sys.stderr)
     first_one = True
     for pkg in vulnerable:
         for bug_pkg, bug in find_applicable_bugs(pkg, db):
