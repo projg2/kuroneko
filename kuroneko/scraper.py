@@ -187,6 +187,9 @@ def main() -> int:
         # skip bugs with no packages
         if not packages:
             continue
+        # skip RESO/INVALID bugs
+        if bug.resolution == 'INVALID':
+            continue
         # skip resolved bugs without specific version ranges
         resolved = bug.resolution != ''
         if resolved and not all(p[0] in '<>~=' for p
