@@ -18,6 +18,11 @@ setup(
     url='http://github.com/mgorny/kuroneko',
 
     packages=['kuroneko'],
+    entry_points={
+        'console_scripts': [
+            'kuroneko=kuroneko.__main__:main',
+        ],
+    },
 
     install_requires=[
         'colorama',
