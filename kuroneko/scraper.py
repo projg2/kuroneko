@@ -22,6 +22,7 @@ from kuroneko.database import Database
 
 BUGZILLA_API_URL = 'https://bugs.gentoo.org/rest'
 PKG_SEPARATORS = re.compile(r':\s|[\s,;(){}[\]]')
+WORD_RE = re.compile(r'\w')
 SEVERITY_RE = re.compile(r'[~ABC][1-4]')
 VER_SPLIT_RE = re.compile(r'([^\d]+)')
 
@@ -78,18 +79,25 @@ def find_security_bugs(limit: typing.Optional[int] = None,
 
 def find_package_specs(s: str) -> typing.Iterable[atom]:
     """Find potentially valid package specifications in given string."""
-    words = set()
+    processed_words = set()
     # consider all possible expansions
     for exp in bracex.iexpand(s):
-        words.update(PKG_SEPARATORS.split(exp))
-    for w in words:
-        # skip anything that couldn't be cat/pkg early
-        if '/' not in w:
-            continue
-        try:
-            yield atom(w)
-        except MalformedAtom:
-            continue
+        for w in PKG_SEPARATORS.split(exp):
+            # skip terms that do not contain any word chars (incl. empty)
+            if not WORD_RE.search(w):
+                continue
+            # skip special words
+            if w.lower() in ('and', 'or', 'tracker'):
+                continue
+            # break on first non-package word
+            if '/' not in w:
+                break
+            if w not in processed_words:
+                processed_words.add(w)
+                try:
+                    yield atom(w)
+                except MalformedAtom:
+                    pass
 
 
 def split_version_ranges(packages: typing.Iterable[atom]

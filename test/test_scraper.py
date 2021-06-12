@@ -91,6 +91,8 @@ def test_bugzilla_scraping():
      ('dev-foo/bar:{1.3,1.4}', ['dev-foo/bar:1.3', 'dev-foo/bar:1.4']),
      ('<dev-foo/bar-{1.3.2:1.3,1.4.7:1.4}', ['<dev-foo/bar-1.3.2:1.3',
                                              '<dev-foo/bar-1.4.7:1.4']),
+     ('<dev-foo/bar-1.2.3 with dev-bar/frobnicate-13: something',
+      ['<dev-foo/bar-1.2.3']),
      ])
 def test_find_package_specs(spec, expected):
     assert sorted(str(x) for x in find_package_specs(spec)) == expected
