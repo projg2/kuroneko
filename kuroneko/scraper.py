@@ -182,7 +182,7 @@ def main() -> int:
     for i, bug in enumerate(find_security_bugs(limit=args.limit)):
         if bug.id in exclude_set:
             continue
-        packages = list(split_version_ranges(
+        packages = sorted(split_version_ranges(
             find_package_specs(bug.summary)))
         # skip bugs with no packages
         if not packages:
