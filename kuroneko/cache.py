@@ -54,7 +54,7 @@ def cached_get(url: str,
         resp = requests.get(url)
         resp.raise_for_status()
 
-    with open(cache_path, 'wb') as f:
-        f.write(resp.content)
+    with open(cache_path, 'wb') as f2:
+        f2.write(resp.content)
 
     return io.BytesIO(resp.content)
