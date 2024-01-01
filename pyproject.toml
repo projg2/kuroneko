@@ -24,6 +24,9 @@ test = [
     "pytest",
     "responses",
 ]
+types = [
+    "types-requests",
+]
 
 [project.scripts]
 kuroneko = "kuroneko.__main__:main"
