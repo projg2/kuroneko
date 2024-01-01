@@ -1,3 +1,3 @@
-"""Gentoo Security bug scraper and vulnerable package checker."""
+"""Gentoo Security bug scraper and vulnerable package checker"""
 
-__version__ = '0.1.3'
+__version__ = "0.1.4"
