@@ -25,6 +25,7 @@ test = [
     "responses",
 ]
 types = [
+    "types-colorama",
     "types-requests",
 ]
 
@@ -54,11 +55,6 @@ check_untyped_defs = true
 
 [[tool.mypy.overrides]]
 module = [
-    "bracex.*",
-    "colorama.*",
     "pkgcore.*",
-    "pytest.*",
-    "responses.*",
-    "rich.*",
 ]
 ignore_missing_imports = true
