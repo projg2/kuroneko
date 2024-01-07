@@ -135,6 +135,13 @@ def test_get_severity(wb, expected):
      (['dev-foo/bar', 'dev-foo/baz'], [['dev-foo/bar'], ['dev-foo/baz']]),
      (['<dev-foo/bar-1.2', '<dev-foo/bar-1.2-r100'],
       [['<dev-foo/bar-1.2'], ['<dev-foo/bar-1.2-r100']]),
+     (["<net-libs/webkit-gtk-2.42.2:4",
+       "<net-libs/webkit-gtk-2.42.2:4.1",
+       "<net-libs/webkit-gtk-2.42.2:6"],
+      [["<net-libs/webkit-gtk-2.42.2:4"],
+       ["<net-libs/webkit-gtk-2.42.2:4.1"],
+       ["<net-libs/webkit-gtk-2.42.2:6"],
+       ]),
      ])
 def test_split_version_ranges(pkgs, expected):
     assert list(split_version_ranges(atom(x) for x in pkgs)) == expected

@@ -125,10 +125,11 @@ def split_version_ranges(packages: typing.Iterable[atom]
 
                 assert p1.key == p2.key, (
                     f'expected equal keys: {p1} == {p2}')
-                assert p1.fullver != p2.fullver, (
-                    f'expected not_equal fullver: '
-                    f'{p1.fullver} != {p2.fullver}, '
-                    f'p1 = {p1}, p2 = {p2}')
+                # this could e.g. the case when slots are used
+                if p1.fullver == p2.fullver:
+                    yield [str(p2)]
+                    continue
+
                 v1 = VER_SPLIT_RE.split(p1.fullver)
                 v2 = VER_SPLIT_RE.split(p2.fullver)
 
